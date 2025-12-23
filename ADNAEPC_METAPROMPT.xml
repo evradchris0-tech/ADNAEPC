@@ -1,0 +1,1832 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  METAPROMPT OPRO - CHURCH MANAGEMENT SYSTEM (CMS) MIGRATION                  ║
+║  Laravel PHP → Next.js 15 + TypeScript + Prisma + Auth.js v5                 ║
+║  Version: 1.0.0 | Target: Claude VS Code Integration                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+
+<metaprompt_configuration>
+    <model_target>Claude 4 Sonnet / Opus via VS Code</model_target>
+    <methodology>OPRO (Optimization by PROmpting) + Autonomous Execution</methodology>
+    <language>Français (Technical terms in English)</language>
+    <project_name>ADNAEPC - Système de Gestion Paroissiale</project_name>
+    <repository>https://github.com/evradchris0-tech/ADNAEPC.git</repository>
+    <local_path>D:\EPC</local_path>
+</metaprompt_configuration>
+
+<system_role>
+    Tu es un Architecte Full-Stack Senior spécialisé dans la migration de systèmes Legacy vers des stacks modernes.
+    Tu opères en mode AUTONOME dans VS Code avec accès terminal intégré.
+    
+    <expertise>
+        <domain>Church Management Systems, Financial Tracking, Member Management</domain>
+        <backend>Next.js 15 App Router, TypeScript Strict, Prisma ORM, Auth.js v5</backend>
+        <frontend>React 19, Tailwind CSS, shadcn/ui, React Hook Form, Zod</frontend>
+        <database>MySQL 8.0, Prisma Migrations</database>
+        <devops>Git, GitHub Actions, Docker (optional)</devops>
+    </expertise>
+    
+    <behavior_rules>
+        <rule id="1">Exécuter les commandes directement dans le terminal VS Code</rule>
+        <rule id="2">Vérifier le succès de chaque commande avant de continuer</rule>
+        <rule id="3">Faire un commit Git après chaque fonctionnalité complète</rule>
+        <rule id="4">Tester le build TypeScript après chaque modification</rule>
+        <rule id="5">Ne jamais laisser de TODO ou de code incomplet</rule>
+        <rule id="6">Documenter chaque décision architecturale</rule>
+    </behavior_rules>
+</system_role>
+
+<project_context>
+    <description>
+        Migration d'un Church Management System (CMS) de Laravel 10 vers Next.js 15.
+        Le système gère les paroissiens (membres), associations, engagements financiers,
+        versements, cotisations et offrandes d'une paroisse.
+    </description>
+    
+    <domain_entities>
+        <entity name="Member" legacy="Paroissien">Membre de la paroisse avec matricule unique</entity>
+        <entity name="Association" legacy="Associations">Groupe/mouvement paroissial</entity>
+        <entity name="Commitment" legacy="Engagements">Engagement financier annuel</entity>
+        <entity name="Payment" legacy="Versements">Versement contre un engagement</entity>
+        <entity name="Contribution" legacy="Cotisations">Cotisation ponctuelle</entity>
+        <entity name="Offering" legacy="Offrandes">Offrande dominicale</entity>
+        <entity name="User" legacy="Gestionnaires">Utilisateur du système</entity>
+    </domain_entities>
+    
+    <business_rules>
+        <rule id="BR001">Un paroissien peut appartenir à plusieurs associations</rule>
+        <rule id="BR002">Une seule association peut être marquée comme principale</rule>
+        <rule id="BR003">Les engagements sont annuels (période de 12 mois)</rule>
+        <rule id="BR004">Les dettes non payées sont reportées sur l'année suivante</rule>
+        <rule id="BR005">Les versements mettent à jour automatiquement les soldes</rule>
+        <rule id="BR006">Le matricule est généré automatiquement (format XXX-YY)</rule>
+    </business_rules>
+</project_context>
+
+<tech_stack>
+    <frontend>
+        <framework>Next.js 15.1.x (App Router)</framework>
+        <language>TypeScript 5.x (strict mode)</language>
+        <styling>Tailwind CSS 3.4.x</styling>
+        <components>shadcn/ui (latest)</components>
+        <forms>React Hook Form + Zod</forms>
+        <state>Zustand (si nécessaire)</state>
+        <tables>TanStack Table v8</tables>
+    </frontend>
+    
+    <backend>
+        <api>Next.js API Routes (App Router)</api>
+        <orm>Prisma 5.x</orm>
+        <auth>Auth.js v5 (NextAuth.js)</auth>
+        <validation>Zod</validation>
+        <database>MySQL 8.0</database>
+    </backend>
+    
+    <tooling>
+        <linter>ESLint + Prettier</linter>
+        <testing>Vitest + React Testing Library</testing>
+        <git>Git + GitHub</git>
+    </tooling>
+</tech_stack>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASE 0: INITIALISATION PROJET                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="0" name="PROJECT_INITIALIZATION">
+    <objective>Créer le projet Next.js et configurer le dépôt GitHub</objective>
+    <estimated_time>15-20 minutes</estimated_time>
+    
+    <step id="0.1" name="PREPARE_WORKSPACE">
+        <description>Préparer l'espace de travail et vérifier les prérequis</description>
+        <commands>
+            <![CDATA[
+# Ouvrir le terminal VS Code et naviguer vers le répertoire parent
+cd D:\
+
+# Vérifier les prérequis
+node --version
+# Attendu: v18.x ou v20.x ou v22.x
+
+npm --version
+# Attendu: v9.x ou v10.x
+
+git --version
+# Attendu: v2.x
+
+# Supprimer le dossier existant si présent (optionnel)
+# rmdir /s /q EPC
+            ]]>
+        </commands>
+        <verification>
+            <check>Node.js version >= 18.17.0</check>
+            <check>npm version >= 9.0.0</check>
+            <check>Git installé et configuré</check>
+        </verification>
+    </step>
+    
+    <step id="0.2" name="CREATE_NEXTJS_PROJECT">
+        <description>Créer le projet Next.js 15 avec toutes les options recommandées</description>
+        <commands>
+            <![CDATA[
+cd D:\
+
+# Créer le projet Next.js avec les options optimales
+npx create-next-app@latest EPC --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
+
+# Entrer dans le projet
+cd EPC
+
+# Vérifier la structure créée
+dir /b
+            ]]>
+        </commands>
+        <expected_structure>
+            <![CDATA[
+EPC/
+├── src/
+│   └── app/
+│       ├── layout.tsx
+│       ├── page.tsx
+│       └── globals.css
+├── public/
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+├── next.config.ts
+└── .eslintrc.json
+            ]]>
+        </expected_structure>
+        <verification>
+            <command>npm run build</command>
+            <expected>Build successful</expected>
+        </verification>
+    </step>
+    
+    <step id="0.3" name="CONFIGURE_TYPESCRIPT_STRICT">
+        <description>Configurer TypeScript en mode strict maximal</description>
+        <file path="tsconfig.json">
+            <![CDATA[
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+            ]]>
+        </file>
+        <verification>
+            <command>npx tsc --noEmit</command>
+            <expected>No errors</expected>
+        </verification>
+    </step>
+    
+    <step id="0.4" name="INITIALIZE_GIT_REPOSITORY">
+        <description>Initialiser Git et connecter au dépôt GitHub</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# Initialiser Git (si pas déjà fait par create-next-app)
+git init
+
+# Configurer l'utilisateur Git (adapter selon votre config)
+git config user.name "evradchris0-tech"
+git config user.email "votre-email@example.com"
+
+# Créer le fichier .gitignore complet
+            ]]>
+        </commands>
+        <file path=".gitignore">
+            <![CDATA[
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Prisma
+/prisma/migrations/**/migration_lock.toml
+
+# Logs
+logs/
+*.log
+            ]]>
+        </file>
+        <commands_continue>
+            <![CDATA[
+# Ajouter le remote GitHub
+git remote add origin https://github.com/evradchris0-tech/ADNAEPC.git
+
+# Créer la branche principale
+git branch -M main
+
+# Premier commit
+git add .
+git commit -m "feat: initial Next.js 15 project setup with TypeScript strict mode"
+
+# Pousser vers GitHub (nécessite authentification)
+git push -u origin main
+            ]]>
+        </commands_continue>
+        <verification>
+            <command>git status</command>
+            <expected>On branch main, nothing to commit</expected>
+            <command>git remote -v</command>
+            <expected>origin https://github.com/evradchris0-tech/ADNAEPC.git</expected>
+        </verification>
+    </step>
+    
+    <step id="0.5" name="INSTALL_CORE_DEPENDENCIES">
+        <description>Installer toutes les dépendances backend essentielles</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# ORM et Base de données
+npm install prisma @prisma/client
+
+# Authentification
+npm install next-auth@beta @auth/prisma-adapter
+
+# Validation
+npm install zod
+
+# Utilitaires
+npm install bcryptjs
+npm install -D @types/bcryptjs
+
+# Date handling
+npm install date-fns
+
+# Génération UUID
+npm install uuid
+npm install -D @types/uuid
+
+# Vérifier les installations
+npm list prisma @prisma/client next-auth zod bcryptjs date-fns uuid
+            ]]>
+        </commands>
+        <verification>
+            <command>npm list --depth=0</command>
+            <expected>All packages listed without errors</expected>
+        </verification>
+    </step>
+    
+    <step id="0.6" name="SETUP_PROJECT_STRUCTURE">
+        <description>Créer la structure de dossiers selon Clean Architecture</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC\src
+
+# Créer la structure backend
+mkdir lib
+mkdir lib\db
+mkdir lib\auth
+mkdir lib\validations
+mkdir lib\utils
+mkdir lib\services
+
+# Créer la structure API
+mkdir app\api
+mkdir app\api\auth
+mkdir app\api\members
+mkdir app\api\associations
+mkdir app\api\commitments
+mkdir app\api\payments
+mkdir app\api\contributions
+mkdir app\api\offerings
+
+# Créer la structure des types
+mkdir types
+
+# Créer la structure des composants (pour plus tard)
+mkdir components
+mkdir components\ui
+mkdir components\forms
+mkdir components\tables
+mkdir components\layout
+
+# Créer la structure des hooks
+mkdir hooks
+
+# Vérifier la structure
+cd D:\EPC
+dir /s /b /ad src
+            ]]>
+        </commands>
+        <expected_structure>
+            <![CDATA[
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/
+│   │   ├── members/
+│   │   ├── associations/
+│   │   ├── commitments/
+│   │   ├── payments/
+│   │   ├── contributions/
+│   │   └── offerings/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+│   ├── ui/
+│   ├── forms/
+│   ├── tables/
+│   └── layout/
+├── hooks/
+├── lib/
+│   ├── db/
+│   ├── auth/
+│   ├── validations/
+│   ├── utils/
+│   └── services/
+└── types/
+            ]]>
+        </expected_structure>
+    </step>
+    
+    <step id="0.7" name="COMMIT_PHASE_0">
+        <description>Commit de fin de phase 0</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+git add .
+git commit -m "feat: project structure and core dependencies setup
+
+- Added TypeScript strict configuration
+- Installed Prisma, Auth.js, Zod, bcryptjs
+- Created Clean Architecture folder structure
+- Configured .gitignore for Next.js + Prisma"
+
+git push origin main
+            ]]>
+        </commands>
+    </step>
+    
+    <phase_completion>
+        <checklist>
+            <item>✅ Projet Next.js 15 créé avec TypeScript</item>
+            <item>✅ Configuration TypeScript strict mode</item>
+            <item>✅ Dépôt Git initialisé et connecté à GitHub</item>
+            <item>✅ Dépendances core installées</item>
+            <item>✅ Structure de dossiers créée</item>
+            <item>✅ Premier push sur GitHub réussi</item>
+        </checklist>
+        <next_phase>PHASE 1: Database Schema with Prisma</next_phase>
+    </phase_completion>
+</phase>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASE 1: DATABASE SCHEMA (PRISMA)                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="1" name="DATABASE_SCHEMA">
+    <objective>Définir le schéma Prisma complet basé sur l'analyse du code Laravel</objective>
+    <estimated_time>30-45 minutes</estimated_time>
+    
+    <step id="1.1" name="INITIALIZE_PRISMA">
+        <description>Initialiser Prisma avec MySQL</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# Initialiser Prisma
+npx prisma init --datasource-provider mysql
+
+# Cela crée:
+# - prisma/schema.prisma
+# - .env (avec DATABASE_URL)
+            ]]>
+        </commands>
+    </step>
+    
+    <step id="1.2" name="CONFIGURE_DATABASE_URL">
+        <description>Configurer la connexion à la base de données MySQL</description>
+        <file path=".env">
+            <![CDATA[
+# Database Configuration
+DATABASE_URL="mysql://root:password@localhost:3306/adnaepc_db"
+
+# Auth.js Configuration
+AUTH_SECRET="votre-secret-genere-avec-openssl-rand-base64-32"
+AUTH_URL="http://localhost:3000"
+
+# Application Configuration
+NEXT_PUBLIC_APP_NAME="ADNAEPC"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+            ]]>
+        </file>
+        <file path=".env.example">
+            <![CDATA[
+# Database Configuration
+DATABASE_URL="mysql://user:password@localhost:3306/database_name"
+
+# Auth.js Configuration
+AUTH_SECRET="generate-with-openssl-rand-base64-32"
+AUTH_URL="http://localhost:3000"
+
+# Application Configuration
+NEXT_PUBLIC_APP_NAME="ADNAEPC"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+            ]]>
+        </file>
+    </step>
+    
+    <step id="1.3" name="CREATE_PRISMA_SCHEMA">
+        <description>Créer le schéma Prisma complet</description>
+        <file path="prisma/schema.prisma">
+            <![CDATA[
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADNAEPC - Church Management System Database Schema
+// Migrated from Laravel 10 to Prisma ORM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTHENTICATION & AUTHORIZATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  phone         String?
+  address       String?
+  isActive      Boolean   @default(true)
+  
+  // Relations Auth.js
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relations métier
+  role          Role      @relation(fields: [roleId], references: [id])
+  roleId        String
+  
+  // Association gérée (pour les gestionnaires)
+  managedAssociation   Association? @relation("ManagedBy", fields: [managedAssociationId], references: [id])
+  managedAssociationId String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  
+  // Relations
+  users       User[]
+  permissions RolePermission[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  module      String   // ex: "members", "commitments", "payments"
+  
+  // Relations
+  roles       RolePermission[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId       String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String
+  
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CORE DOMAIN ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Association {
+  id        String   @id @default(cuid())
+  name      String
+  sigle     String   @unique
+  
+  // Relations
+  members   MemberAssociation[]
+  primaryMembers Member[] @relation("PrimaryAssociation")
+  commitments    Commitment[]
+  offerings      Offering[]
+  managers       User[] @relation("ManagedBy")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("associations")
+}
+
+model Member {
+  id              String   @id @default(cuid())
+  
+  // Identification
+  oldMatricule    String?  @map("old_matricule")
+  newMatricule    String   @unique @map("new_matricule")
+  
+  // Informations personnelles
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  gender          Gender
+  birthDate       DateTime? @map("birth_date") @db.Date
+  birthPlace      String?  @map("birth_place")
+  
+  // Contact
+  email           String?
+  phone           String?
+  address         String?
+  
+  // Informations professionnelles
+  schoolLevel     String?  @map("school_level")
+  job             String?
+  jobPosition     String?  @map("job_position")
+  servicePlace    String?  @map("service_place")
+  
+  // Situation familiale
+  maritalStatus   MaritalStatus @default(SINGLE) @map("marital_status")
+  spouseName      String?       @map("spouse_name")
+  fatherName      String?       @map("father_name")
+  motherName      String?       @map("mother_name")
+  childrenCount   Int           @default(0) @map("children_count")
+  
+  // Informations religieuses
+  baptismDate     DateTime?     @map("baptism_date") @db.Date
+  confirmationDate DateTime?    @map("confirmation_date") @db.Date
+  adhesionDate    DateTime?     @map("adhesion_date") @db.Date
+  
+  // Classification
+  category        MemberCategory @default(ADULT)
+  situation       MemberSituation @default(ACTIVE)
+  
+  // Association principale (backward compatibility + quick access)
+  primaryAssociation   Association? @relation("PrimaryAssociation", fields: [primaryAssociationId], references: [id])
+  primaryAssociationId String?      @map("primary_association_id")
+  
+  // Relations
+  associations    MemberAssociation[]
+  commitments     Commitment[]
+  payments        Payment[]
+  contributions   Contribution[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([newMatricule])
+  @@index([lastName, firstName])
+  @@index([primaryAssociationId])
+  @@map("members")
+}
+
+// Table pivot pour la relation Many-to-Many Member <-> Association
+model MemberAssociation {
+  id            String   @id @default(cuid())
+  
+  member        Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId      String      @map("member_id")
+  
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  associationId String      @map("association_id")
+  
+  // Métadonnées de l'affiliation
+  adhesionDate  DateTime?   @map("adhesion_date") @db.Date
+  isPrimary     Boolean     @default(false) @map("is_primary")
+  status        MembershipStatus @default(ACTIVE)
+  notes         String?     @db.Text
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([memberId, associationId])
+  @@index([memberId])
+  @@index([associationId])
+  @@map("member_associations")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FINANCIAL DOMAIN
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Commitment {
+  id              String   @id @default(cuid())
+  
+  // Relations
+  member          Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId        String      @map("member_id")
+  
+  association     Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  associationId   String      @map("association_id")
+  
+  // Période d'engagement (annuelle)
+  periodStart     DateTime    @map("period_start") @db.Date
+  periodEnd       DateTime    @map("period_end") @db.Date
+  year            Int         // Année fiscale pour faciliter les requêtes
+  
+  // Montants engagés
+  titheAmount         Decimal @default(0) @map("tithe_amount") @db.Decimal(10, 2)
+  constructionAmount  Decimal @default(0) @map("construction_amount") @db.Decimal(10, 2)
+  titheDebtAmount     Decimal @default(0) @map("tithe_debt_amount") @db.Decimal(10, 2)
+  constructionDebtAmount Decimal @default(0) @map("construction_debt_amount") @db.Decimal(10, 2)
+  
+  // Montants versés (calculés à partir des payments, mais dénormalisés pour performance)
+  paidTithe           Decimal @default(0) @map("paid_tithe") @db.Decimal(10, 2)
+  paidConstruction    Decimal @default(0) @map("paid_construction") @db.Decimal(10, 2)
+  paidTitheDebt       Decimal @default(0) @map("paid_tithe_debt") @db.Decimal(10, 2)
+  paidConstructionDebt Decimal @default(0) @map("paid_construction_debt") @db.Decimal(10, 2)
+  
+  // Relations
+  payments        Payment[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([memberId, year])
+  @@index([memberId])
+  @@index([associationId])
+  @@index([year])
+  @@index([periodStart, periodEnd])
+  @@map("commitments")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  
+  // Relations
+  member        Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId      String     @map("member_id")
+  
+  commitment    Commitment @relation(fields: [commitmentId], references: [id], onDelete: Cascade)
+  commitmentId  String     @map("commitment_id")
+  
+  // Détails du paiement
+  type          PaymentType
+  amount        Decimal    @db.Decimal(10, 2)
+  paymentDate   DateTime   @default(now()) @map("payment_date")
+  
+  // Métadonnées
+  reference     String?    // Numéro de reçu ou référence
+  notes         String?    @db.Text
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([memberId])
+  @@index([commitmentId])
+  @@index([type])
+  @@index([paymentDate])
+  @@map("payments")
+}
+
+model Contribution {
+  id            String   @id @default(cuid())
+  
+  // Relations
+  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId      String   @map("member_id")
+  
+  // Détails
+  type          String   // Type de cotisation (libre)
+  amount        Decimal  @db.Decimal(10, 2)
+  contributionDate DateTime @default(now()) @map("contribution_date")
+  
+  // Métadonnées
+  reference     String?
+  notes         String?  @db.Text
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([memberId])
+  @@index([type])
+  @@index([contributionDate])
+  @@map("contributions")
+}
+
+model Offering {
+  id            String   @id @default(cuid())
+  
+  // Relations
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  associationId String      @map("association_id")
+  
+  // Détails
+  amount        Decimal     @db.Decimal(10, 2)
+  offeringDate  DateTime    @map("offering_date") @db.Date
+  
+  // Métadonnées
+  notes         String?     @db.Text
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([associationId])
+  @@index([offeringDate])
+  @@map("offerings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MaritalStatus {
+  SINGLE      // Célibataire
+  MARRIED     // Marié(e)
+  WIDOWED     // Veuf/Veuve
+  DIVORCED    // Divorcé(e)
+}
+
+enum MemberCategory {
+  ADULT       // Adulte
+  YOUTH       // Jeune
+  CHILD       // Enfant
+}
+
+enum MemberSituation {
+  ACTIVE      // Actif
+  INACTIVE    // Inactif
+  DECEASED    // Décédé
+  TRANSFERRED // Transféré
+}
+
+enum MembershipStatus {
+  ACTIVE      // Membre actif
+  INACTIVE    // Membre inactif
+  SUSPENDED   // Suspendu
+}
+
+enum PaymentType {
+  TITHE               // Dîme
+  CONSTRUCTION        // Offrande de construction
+  TITHE_DEBT          // Dette de dîme
+  CONSTRUCTION_DEBT   // Dette d'offrande de construction
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="1.4" name="CREATE_PRISMA_CLIENT_SINGLETON">
+        <description>Créer le singleton Prisma Client pour Next.js</description>
+        <file path="src/lib/db/prisma.ts">
+            <![CDATA[
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' 
+    ? ['query', 'error', 'warn'] 
+    : ['error'],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+export default prisma;
+            ]]>
+        </file>
+        <file path="src/lib/db/index.ts">
+            <![CDATA[
+export { prisma, default } from './prisma';
+            ]]>
+        </file>
+    </step>
+    
+    <step id="1.5" name="GENERATE_PRISMA_CLIENT">
+        <description>Générer le client Prisma et créer la base de données</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# Créer la base de données MySQL (à faire manuellement ou via script)
+# mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS adnaepc_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Générer le client Prisma
+npx prisma generate
+
+# Créer et appliquer la migration initiale
+npx prisma migrate dev --name init
+
+# Vérifier le schéma
+npx prisma db pull
+npx prisma studio
+            ]]>
+        </commands>
+        <verification>
+            <command>npx prisma validate</command>
+            <expected>Prisma schema is valid</expected>
+        </verification>
+    </step>
+    
+    <step id="1.6" name="CREATE_DATABASE_SEED">
+        <description>Créer le script de seed pour les données initiales</description>
+        <file path="prisma/seed.ts">
+            <![CDATA[
+import { PrismaClient, Gender, MaritalStatus, MemberCategory, MemberSituation, PaymentType } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting database seed...');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 1. CREATE PERMISSIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('Creating permissions...');
+  
+  const permissionsData = [
+    // Users
+    { name: 'users.view', displayName: 'Voir les utilisateurs', module: 'users' },
+    { name: 'users.create', displayName: 'Créer des utilisateurs', module: 'users' },
+    { name: 'users.edit', displayName: 'Modifier des utilisateurs', module: 'users' },
+    { name: 'users.delete', displayName: 'Supprimer des utilisateurs', module: 'users' },
+    // Members
+    { name: 'members.view', displayName: 'Voir les paroissiens', module: 'members' },
+    { name: 'members.create', displayName: 'Créer des paroissiens', module: 'members' },
+    { name: 'members.edit', displayName: 'Modifier des paroissiens', module: 'members' },
+    { name: 'members.delete', displayName: 'Supprimer des paroissiens', module: 'members' },
+    // Associations
+    { name: 'associations.view', displayName: 'Voir les associations', module: 'associations' },
+    { name: 'associations.create', displayName: 'Créer des associations', module: 'associations' },
+    { name: 'associations.edit', displayName: 'Modifier des associations', module: 'associations' },
+    { name: 'associations.delete', displayName: 'Supprimer des associations', module: 'associations' },
+    // Commitments
+    { name: 'commitments.view', displayName: 'Voir les engagements', module: 'commitments' },
+    { name: 'commitments.create', displayName: 'Créer des engagements', module: 'commitments' },
+    { name: 'commitments.edit', displayName: 'Modifier des engagements', module: 'commitments' },
+    { name: 'commitments.delete', displayName: 'Supprimer des engagements', module: 'commitments' },
+    // Payments
+    { name: 'payments.view', displayName: 'Voir les versements', module: 'payments' },
+    { name: 'payments.create', displayName: 'Créer des versements', module: 'payments' },
+    { name: 'payments.edit', displayName: 'Modifier des versements', module: 'payments' },
+    { name: 'payments.delete', displayName: 'Supprimer des versements', module: 'payments' },
+    // Contributions
+    { name: 'contributions.view', displayName: 'Voir les cotisations', module: 'contributions' },
+    { name: 'contributions.create', displayName: 'Créer des cotisations', module: 'contributions' },
+    { name: 'contributions.edit', displayName: 'Modifier des cotisations', module: 'contributions' },
+    { name: 'contributions.delete', displayName: 'Supprimer des cotisations', module: 'contributions' },
+    // Offerings
+    { name: 'offerings.view', displayName: 'Voir les offrandes', module: 'offerings' },
+    { name: 'offerings.create', displayName: 'Créer des offrandes', module: 'offerings' },
+    { name: 'offerings.edit', displayName: 'Modifier des offrandes', module: 'offerings' },
+    { name: 'offerings.delete', displayName: 'Supprimer des offrandes', module: 'offerings' },
+    // Reports
+    { name: 'reports.view', displayName: 'Voir les rapports', module: 'reports' },
+    { name: 'reports.export', displayName: 'Exporter les données', module: 'reports' },
+    // System
+    { name: 'system.manage', displayName: 'Gérer le système', module: 'system' },
+  ];
+
+  const permissions = await Promise.all(
+    permissionsData.map((p) =>
+      prisma.permission.upsert({
+        where: { name: p.name },
+        update: {},
+        create: p,
+      })
+    )
+  );
+
+  console.log(`✅ Created ${permissions.length} permissions`);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 2. CREATE ROLES
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('Creating roles...');
+
+  const superAdmin = await prisma.role.upsert({
+    where: { name: 'super_admin' },
+    update: {},
+    create: {
+      name: 'super_admin',
+      displayName: 'Super Administrateur',
+      description: 'Accès complet au système',
+    },
+  });
+
+  const admin = await prisma.role.upsert({
+    where: { name: 'admin' },
+    update: {},
+    create: {
+      name: 'admin',
+      displayName: 'Administrateur',
+      description: 'Gestion complète sauf paramètres système',
+    },
+  });
+
+  const manager = await prisma.role.upsert({
+    where: { name: 'gestionnaire' },
+    update: {},
+    create: {
+      name: 'gestionnaire',
+      displayName: 'Gestionnaire',
+      description: 'Gestion des paroissiens et engagements',
+    },
+  });
+
+  const treasurer = await prisma.role.upsert({
+    where: { name: 'tresorier' },
+    update: {},
+    create: {
+      name: 'tresorier',
+      displayName: 'Trésorier',
+      description: 'Gestion financière',
+    },
+  });
+
+  const secretary = await prisma.role.upsert({
+    where: { name: 'secretaire' },
+    update: {},
+    create: {
+      name: 'secretaire',
+      displayName: 'Secrétaire',
+      description: 'Consultation et rapports',
+    },
+  });
+
+  console.log('✅ Created 5 roles');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3. ASSIGN PERMISSIONS TO ROLES
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('Assigning permissions to roles...');
+
+  // Super Admin - All permissions
+  for (const permission of permissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: superAdmin.id,
+          permissionId: permission.id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: superAdmin.id,
+        permissionId: permission.id,
+      },
+    });
+  }
+
+  // Admin - All except system.manage
+  const adminPermissions = permissions.filter((p) => p.name !== 'system.manage');
+  for (const permission of adminPermissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: admin.id,
+          permissionId: permission.id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: admin.id,
+        permissionId: permission.id,
+      },
+    });
+  }
+
+  // Treasurer - Financial permissions
+  const treasurerPermNames = [
+    'members.view',
+    'commitments.view', 'commitments.create', 'commitments.edit',
+    'payments.view', 'payments.create', 'payments.edit',
+    'contributions.view', 'contributions.create', 'contributions.edit',
+    'offerings.view', 'offerings.create', 'offerings.edit',
+    'reports.view', 'reports.export',
+  ];
+  const treasurerPerms = permissions.filter((p) => treasurerPermNames.includes(p.name));
+  for (const permission of treasurerPerms) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: treasurer.id,
+          permissionId: permission.id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: treasurer.id,
+        permissionId: permission.id,
+      },
+    });
+  }
+
+  console.log('✅ Assigned permissions to roles');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 4. CREATE DEFAULT SUPER ADMIN USER
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('Creating default super admin user...');
+
+  const hashedPassword = await bcrypt.hash('Admin@123', 12);
+
+  const superAdminUser = await prisma.user.upsert({
+    where: { email: 'admin@adnaepc.local' },
+    update: {},
+    create: {
+      name: 'Super Admin',
+      email: 'admin@adnaepc.local',
+      password: hashedPassword,
+      roleId: superAdmin.id,
+      isActive: true,
+    },
+  });
+
+  console.log(`✅ Created super admin user: ${superAdminUser.email}`);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5. CREATE SAMPLE ASSOCIATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('Creating sample associations...');
+
+  const associations = await Promise.all([
+    prisma.association.upsert({
+      where: { sigle: 'CVA' },
+      update: {},
+      create: { name: 'Chorale Voix des Anges', sigle: 'CVA' },
+    }),
+    prisma.association.upsert({
+      where: { sigle: 'LEC' },
+      update: {},
+      create: { name: 'Légion de Marie', sigle: 'LEC' },
+    }),
+    prisma.association.upsert({
+      where: { sigle: 'JAC' },
+      update: {},
+      create: { name: 'Jeunesse Action Catholique', sigle: 'JAC' },
+    }),
+    prisma.association.upsert({
+      where: { sigle: 'CMR' },
+      update: {},
+      create: { name: 'Chrétiens dans le Monde Rural', sigle: 'CMR' },
+    }),
+    prisma.association.upsert({
+      where: { sigle: 'SCF' },
+      update: {},
+      create: { name: 'Service de la Charité Fraternelle', sigle: 'SCF' },
+    }),
+  ]);
+
+  console.log(`✅ Created ${associations.length} associations`);
+
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log('🎉 Database seed completed successfully!');
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log('');
+  console.log('Default credentials:');
+  console.log('  Email: admin@adnaepc.local');
+  console.log('  Password: Admin@123');
+  console.log('');
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+            ]]>
+        </file>
+        <commands>
+            <![CDATA[
+# Ajouter la configuration du seed dans package.json
+# Éditer package.json pour ajouter:
+# "prisma": {
+#   "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+# }
+
+# Installer ts-node si nécessaire
+npm install -D ts-node
+
+# Exécuter le seed
+npx prisma db seed
+            ]]>
+        </commands>
+    </step>
+    
+    <step id="1.7" name="UPDATE_PACKAGE_JSON_PRISMA">
+        <description>Mettre à jour package.json pour Prisma seed</description>
+        <file_patch path="package.json">
+            <![CDATA[
+# Ajouter après "dependencies" ou à la fin avant la dernière accolade:
+  "prisma": {
+    "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
+            ]]>
+        </file_patch>
+    </step>
+    
+    <step id="1.8" name="COMMIT_PHASE_1">
+        <description>Commit de fin de phase 1</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# Vérifier que tout compile
+npx prisma validate
+npx prisma generate
+npm run build
+
+git add .
+git commit -m "feat(database): complete Prisma schema and seed
+
+- Added complete database schema with all entities
+- Created User, Role, Permission models for auth
+- Created Member, Association, MemberAssociation models
+- Created Commitment, Payment, Contribution, Offering models
+- Added database seed with default data
+- Configured Prisma client singleton for Next.js
+
+Domain entities migrated:
+- Paroissien -> Member
+- Associations -> Association
+- Engagements -> Commitment
+- Versements -> Payment
+- Cotisations -> Contribution
+- Offrandes -> Offering"
+
+git push origin main
+            ]]>
+        </commands>
+    </step>
+    
+    <phase_completion>
+        <checklist>
+            <item>✅ Prisma initialisé avec MySQL</item>
+            <item>✅ Schéma complet défini</item>
+            <item>✅ Client Prisma singleton créé</item>
+            <item>✅ Migration initiale appliquée</item>
+            <item>✅ Seed créé avec données par défaut</item>
+            <item>✅ Build TypeScript réussi</item>
+        </checklist>
+        <next_phase>PHASE 2: Authentication with Auth.js v5</next_phase>
+    </phase_completion>
+</phase>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASE 2: AUTHENTICATION (AUTH.JS V5)                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="2" name="AUTHENTICATION">
+    <objective>Implémenter l'authentification complète avec Auth.js v5</objective>
+    <estimated_time>45-60 minutes</estimated_time>
+    
+    <step id="2.1" name="CREATE_AUTH_CONFIG">
+        <description>Créer la configuration Auth.js</description>
+        <file path="src/lib/auth/config.ts">
+            <![CDATA[
+import type { NextAuthConfig } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import { prisma } from '@/lib/db';
+import { loginSchema } from '@/lib/validations/auth';
+
+export const authConfig: NextAuthConfig = {
+  providers: [
+    Credentials({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        const validatedFields = loginSchema.safeParse(credentials);
+
+        if (!validatedFields.success) {
+          return null;
+        }
+
+        const { email, password } = validatedFields.data;
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!user || !user.password || !user.isActive) {
+          return null;
+        }
+
+        const passwordsMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordsMatch) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          role: user.role.name,
+          permissions: user.role.permissions.map((rp) => rp.permission.name),
+        };
+      },
+    }),
+  ],
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.permissions = user.permissions;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.permissions = token.permissions as string[];
+      }
+      return session;
+    },
+    async authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
+      const isOnLogin = nextUrl.pathname === '/login';
+      const isOnApi = nextUrl.pathname.startsWith('/api');
+
+      // Allow API routes to handle their own auth
+      if (isOnApi) {
+        return true;
+      }
+
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Redirect to login
+      }
+
+      if (isOnLogin && isLoggedIn) {
+        return Response.redirect(new URL('/dashboard', nextUrl));
+      }
+
+      return true;
+    },
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  trustHost: true,
+};
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.2" name="CREATE_AUTH_INSTANCE">
+        <description>Créer l'instance Auth.js</description>
+        <file path="src/lib/auth/index.ts">
+            <![CDATA[
+import NextAuth from 'next-auth';
+import { authConfig } from './config';
+
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth(authConfig);
+
+export { authConfig };
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.3" name="CREATE_AUTH_VALIDATIONS">
+        <description>Créer les schémas de validation Zod pour l'auth</description>
+        <file path="src/lib/validations/auth.ts">
+            <![CDATA[
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'L\'email est requis')
+    .email('Format d\'email invalide'),
+  password: z
+    .string()
+    .min(1, 'Le mot de passe est requis')
+    .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
+});
+
+export const registerSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Le nom est requis')
+    .min(2, 'Le nom doit contenir au moins 2 caractères'),
+  email: z
+    .string()
+    .min(1, 'L\'email est requis')
+    .email('Format d\'email invalide'),
+  password: z
+    .string()
+    .min(1, 'Le mot de passe est requis')
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
+    ),
+  confirmPassword: z.string().min(1, 'La confirmation est requise'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Les mots de passe ne correspondent pas',
+  path: ['confirmPassword'],
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Le mot de passe actuel est requis'),
+  newPassword: z
+    .string()
+    .min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
+    ),
+  confirmNewPassword: z.string().min(1, 'La confirmation est requise'),
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: 'Les mots de passe ne correspondent pas',
+  path: ['confirmNewPassword'],
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.4" name="CREATE_AUTH_TYPES">
+        <description>Étendre les types Auth.js</description>
+        <file path="src/types/next-auth.d.ts">
+            <![CDATA[
+import { DefaultSession, DefaultUser } from 'next-auth';
+import { JWT, DefaultJWT } from 'next-auth/jwt';
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+      permissions: string[];
+    } & DefaultSession['user'];
+  }
+
+  interface User extends DefaultUser {
+    role: string;
+    permissions: string[];
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT extends DefaultJWT {
+    id: string;
+    role: string;
+    permissions: string[];
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.5" name="CREATE_AUTH_API_ROUTE">
+        <description>Créer la route API Auth.js</description>
+        <file path="src/app/api/auth/[...nextauth]/route.ts">
+            <![CDATA[
+import { GET, POST } from '@/lib/auth';
+
+export { GET, POST };
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.6" name="CREATE_MIDDLEWARE">
+        <description>Créer le middleware Next.js pour la protection des routes</description>
+        <file path="src/middleware.ts">
+            <![CDATA[
+import { auth } from '@/lib/auth';
+
+export default auth;
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (auth API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
+  ],
+};
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.7" name="CREATE_AUTH_HELPERS">
+        <description>Créer les helpers d'authentification</description>
+        <file path="src/lib/auth/helpers.ts">
+            <![CDATA[
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+
+/**
+ * Get the current session (server-side)
+ */
+export async function getSession() {
+  return await auth();
+}
+
+/**
+ * Get the current user or redirect to login
+ */
+export async function getCurrentUser() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  return session.user;
+}
+
+/**
+ * Check if the current user has a specific permission
+ */
+export async function hasPermission(permission: string): Promise<boolean> {
+  const session = await auth();
+
+  if (!session?.user?.permissions) {
+    return false;
+  }
+
+  return session.user.permissions.includes(permission);
+}
+
+/**
+ * Check if the current user has any of the specified permissions
+ */
+export async function hasAnyPermission(permissions: string[]): Promise<boolean> {
+  const session = await auth();
+
+  if (!session?.user?.permissions) {
+    return false;
+  }
+
+  return permissions.some((p) => session.user.permissions.includes(p));
+}
+
+/**
+ * Check if the current user has all of the specified permissions
+ */
+export async function hasAllPermissions(permissions: string[]): Promise<boolean> {
+  const session = await auth();
+
+  if (!session?.user?.permissions) {
+    return false;
+  }
+
+  return permissions.every((p) => session.user.permissions.includes(p));
+}
+
+/**
+ * Check if the current user has a specific role
+ */
+export async function hasRole(role: string): Promise<boolean> {
+  const session = await auth();
+
+  if (!session?.user?.role) {
+    return false;
+  }
+
+  return session.user.role === role;
+}
+
+/**
+ * Check if the current user has any of the specified roles
+ */
+export async function hasAnyRole(roles: string[]): Promise<boolean> {
+  const session = await auth();
+
+  if (!session?.user?.role) {
+    return false;
+  }
+
+  return roles.includes(session.user.role);
+}
+
+/**
+ * Require a specific permission or throw/redirect
+ */
+export async function requirePermission(permission: string): Promise<void> {
+  const hasAccess = await hasPermission(permission);
+
+  if (!hasAccess) {
+    redirect('/dashboard?error=unauthorized');
+  }
+}
+
+/**
+ * Require a specific role or throw/redirect
+ */
+export async function requireRole(role: string): Promise<void> {
+  const hasAccess = await hasRole(role);
+
+  if (!hasAccess) {
+    redirect('/dashboard?error=unauthorized');
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.8" name="CREATE_AUTH_ACTIONS">
+        <description>Créer les Server Actions pour l'authentification</description>
+        <file path="src/lib/auth/actions.ts">
+            <![CDATA[
+'use server';
+
+import { signIn, signOut } from '@/lib/auth';
+import { AuthError } from 'next-auth';
+import { loginSchema, type LoginInput } from '@/lib/validations/auth';
+import { redirect } from 'next/navigation';
+
+export type AuthState = {
+  error?: string;
+  success?: boolean;
+};
+
+export async function login(
+  prevState: AuthState | undefined,
+  formData: FormData
+): Promise<AuthState> {
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+  };
+
+  const validatedFields = loginSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.errors[0]?.message ?? 'Données invalides',
+    };
+  }
+
+  try {
+    await signIn('credentials', {
+      email: validatedFields.data.email,
+      password: validatedFields.data.password,
+      redirect: false,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return { error: 'Email ou mot de passe incorrect' };
+        default:
+          return { error: 'Une erreur est survenue lors de la connexion' };
+      }
+    }
+    throw error;
+  }
+
+  redirect('/dashboard');
+}
+
+export async function logout(): Promise<void> {
+  await signOut({ redirectTo: '/login' });
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="2.9" name="COMMIT_PHASE_2">
+        <description>Commit de fin de phase 2</description>
+        <commands>
+            <![CDATA[
+cd D:\EPC
+
+# Vérifier que tout compile
+npm run build
+
+git add .
+git commit -m "feat(auth): implement Auth.js v5 authentication
+
+- Created Auth.js configuration with credentials provider
+- Added Zod validation schemas for auth forms
+- Extended NextAuth types for custom user properties
+- Created auth helpers for permission checking
+- Created server actions for login/logout
+- Added middleware for route protection
+
+Security features:
+- JWT session strategy
+- Password hashing with bcrypt
+- Permission-based access control
+- Role-based access control"
+
+git push origin main
+            ]]>
+        </commands>
+    </step>
+    
+    <phase_completion>
+        <checklist>
+            <item>✅ Auth.js v5 configuré</item>
+            <item>✅ Provider Credentials implémenté</item>
+            <item>✅ Types étendus</item>
+            <item>✅ Middleware de protection</item>
+            <item>✅ Helpers d'autorisation</item>
+            <item>✅ Server Actions créées</item>
+        </checklist>
+        <next_phase>PHASE 3: API Routes (CRUD Operations)</next_phase>
+    </phase_completion>
+</phase>
+
+<!-- Les phases suivantes seront dans un fichier séparé pour ne pas surcharger -->
+<remaining_phases>
+    <phase id="3" name="API_ROUTES">CRUD Operations for all entities</phase>
+    <phase id="4" name="VALIDATION_SCHEMAS">Zod schemas for all entities</phase>
+    <phase id="5" name="SERVICES_LAYER">Business logic services</phase>
+    <phase id="6" name="FRONTEND_SETUP">shadcn/ui + Components</phase>
+    <phase id="7" name="PAGES">Dashboard + CRUD pages</phase>
+    <phase id="8" name="FORMS">React Hook Form integration</phase>
+    <phase id="9" name="TABLES">TanStack Table integration</phase>
+    <phase id="10" name="TESTING">Vitest + Testing</phase>
+</remaining_phases>
+
+</metaprompt>

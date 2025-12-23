@@ -1,0 +1,1345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  METAPROMPT OPRO - PHASES 3-10 (Suite)                                       ║
+║  ADNAEPC Church Management System Migration                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASE 3: VALIDATION SCHEMAS (ZOD)                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="3" name="VALIDATION_SCHEMAS">
+    <objective>Créer tous les schémas de validation Zod pour les entités</objective>
+    <estimated_time>30 minutes</estimated_time>
+    
+    <step id="3.1" name="MEMBER_SCHEMA">
+        <file path="src/lib/validations/member.ts">
+            <![CDATA[
+import { z } from 'zod';
+import { Gender, MaritalStatus, MemberCategory, MemberSituation } from '@prisma/client';
+
+// Schema de base pour la création
+export const createMemberSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, 'Le prénom est requis')
+    .min(2, 'Le prénom doit contenir au moins 2 caractères')
+    .max(100, 'Le prénom ne peut pas dépasser 100 caractères'),
+  lastName: z
+    .string()
+    .min(1, 'Le nom est requis')
+    .min(2, 'Le nom doit contenir au moins 2 caractères')
+    .max(100, 'Le nom ne peut pas dépasser 100 caractères'),
+  gender: z.nativeEnum(Gender, {
+    errorMap: () => ({ message: 'Veuillez sélectionner un genre valide' }),
+  }),
+  birthDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  birthPlace: z.string().max(255).optional(),
+  email: z.string().email('Format d\'email invalide').optional().or(z.literal('')),
+  phone: z
+    .string()
+    .regex(/^(\+237|237)?[6-9]\d{8}$/, 'Format de téléphone invalide')
+    .optional()
+    .or(z.literal('')),
+  address: z.string().max(500).optional(),
+  schoolLevel: z.string().max(100).optional(),
+  job: z.string().max(100).optional(),
+  jobPosition: z.string().max(100).optional(),
+  servicePlace: z.string().max(255).optional(),
+  maritalStatus: z.nativeEnum(MaritalStatus).default(MaritalStatus.SINGLE),
+  spouseName: z.string().max(200).optional(),
+  fatherName: z.string().max(200).optional(),
+  motherName: z.string().max(200).optional(),
+  childrenCount: z.coerce.number().int().min(0).default(0),
+  baptismDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  confirmationDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  adhesionDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  category: z.nativeEnum(MemberCategory).default(MemberCategory.ADULT),
+  situation: z.nativeEnum(MemberSituation).default(MemberSituation.ACTIVE),
+  primaryAssociationId: z.string().cuid().optional(),
+});
+
+// Schema pour la mise à jour (tous les champs optionnels)
+export const updateMemberSchema = createMemberSchema.partial();
+
+// Schema pour les filtres de recherche
+export const memberFilterSchema = z.object({
+  search: z.string().optional(),
+  associationId: z.string().cuid().optional(),
+  category: z.nativeEnum(MemberCategory).optional(),
+  situation: z.nativeEnum(MemberSituation).optional(),
+  gender: z.nativeEnum(Gender).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortBy: z.string().default('lastName'),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+});
+
+// Schema pour l'ajout à une association
+export const addMemberToAssociationSchema = z.object({
+  memberId: z.string().cuid(),
+  associationId: z.string().cuid(),
+  isPrimary: z.boolean().default(false),
+  adhesionDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : new Date())),
+});
+
+export type CreateMemberInput = z.infer<typeof createMemberSchema>;
+export type UpdateMemberInput = z.infer<typeof updateMemberSchema>;
+export type MemberFilterInput = z.infer<typeof memberFilterSchema>;
+export type AddMemberToAssociationInput = z.infer<typeof addMemberToAssociationSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.2" name="ASSOCIATION_SCHEMA">
+        <file path="src/lib/validations/association.ts">
+            <![CDATA[
+import { z } from 'zod';
+
+export const createAssociationSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Le nom est requis')
+    .min(3, 'Le nom doit contenir au moins 3 caractères')
+    .max(255, 'Le nom ne peut pas dépasser 255 caractères'),
+  sigle: z
+    .string()
+    .min(1, 'Le sigle est requis')
+    .min(2, 'Le sigle doit contenir au moins 2 caractères')
+    .max(20, 'Le sigle ne peut pas dépasser 20 caractères')
+    .toUpperCase(),
+});
+
+export const updateAssociationSchema = createAssociationSchema.partial();
+
+export const associationFilterSchema = z.object({
+  search: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type CreateAssociationInput = z.infer<typeof createAssociationSchema>;
+export type UpdateAssociationInput = z.infer<typeof updateAssociationSchema>;
+export type AssociationFilterInput = z.infer<typeof associationFilterSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.3" name="COMMITMENT_SCHEMA">
+        <file path="src/lib/validations/commitment.ts">
+            <![CDATA[
+import { z } from 'zod';
+
+export const createCommitmentSchema = z.object({
+  memberId: z.string().cuid('ID membre invalide'),
+  associationId: z.string().cuid('ID association invalide'),
+  year: z.coerce
+    .number()
+    .int()
+    .min(2000, 'Année invalide')
+    .max(2100, 'Année invalide'),
+  periodStart: z.string().transform((val) => new Date(val)),
+  periodEnd: z.string().transform((val) => new Date(val)),
+  titheAmount: z.coerce.number().min(0, 'Le montant doit être positif').default(0),
+  constructionAmount: z.coerce.number().min(0, 'Le montant doit être positif').default(0),
+  titheDebtAmount: z.coerce.number().min(0, 'Le montant doit être positif').default(0),
+  constructionDebtAmount: z.coerce.number().min(0, 'Le montant doit être positif').default(0),
+});
+
+export const updateCommitmentSchema = z.object({
+  titheAmount: z.coerce.number().min(0).optional(),
+  constructionAmount: z.coerce.number().min(0).optional(),
+  titheDebtAmount: z.coerce.number().min(0).optional(),
+  constructionDebtAmount: z.coerce.number().min(0).optional(),
+});
+
+export const commitmentFilterSchema = z.object({
+  memberId: z.string().cuid().optional(),
+  associationId: z.string().cuid().optional(),
+  year: z.coerce.number().int().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+// Schema pour la migration annuelle des engagements
+export const migrateCommitmentsSchema = z.object({
+  fromYear: z.coerce.number().int(),
+  toYear: z.coerce.number().int(),
+  associationId: z.string().cuid().optional(),
+});
+
+export type CreateCommitmentInput = z.infer<typeof createCommitmentSchema>;
+export type UpdateCommitmentInput = z.infer<typeof updateCommitmentSchema>;
+export type CommitmentFilterInput = z.infer<typeof commitmentFilterSchema>;
+export type MigrateCommitmentsInput = z.infer<typeof migrateCommitmentsSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.4" name="PAYMENT_SCHEMA">
+        <file path="src/lib/validations/payment.ts">
+            <![CDATA[
+import { z } from 'zod';
+import { PaymentType } from '@prisma/client';
+
+export const createPaymentSchema = z.object({
+  memberId: z.string().cuid('ID membre invalide'),
+  commitmentId: z.string().cuid('ID engagement invalide'),
+  type: z.nativeEnum(PaymentType, {
+    errorMap: () => ({ message: 'Type de versement invalide' }),
+  }),
+  amount: z.coerce
+    .number()
+    .positive('Le montant doit être supérieur à 0'),
+  paymentDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : new Date())),
+  reference: z.string().max(100).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const updatePaymentSchema = z.object({
+  amount: z.coerce.number().positive().optional(),
+  paymentDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  reference: z.string().max(100).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const paymentFilterSchema = z.object({
+  memberId: z.string().cuid().optional(),
+  commitmentId: z.string().cuid().optional(),
+  type: z.nativeEnum(PaymentType).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
+export type UpdatePaymentInput = z.infer<typeof updatePaymentSchema>;
+export type PaymentFilterInput = z.infer<typeof paymentFilterSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.5" name="CONTRIBUTION_OFFERING_SCHEMAS">
+        <file path="src/lib/validations/contribution.ts">
+            <![CDATA[
+import { z } from 'zod';
+
+export const createContributionSchema = z.object({
+  memberId: z.string().cuid('ID membre invalide'),
+  type: z.string().min(1, 'Le type est requis').max(100),
+  amount: z.coerce.number().positive('Le montant doit être supérieur à 0'),
+  contributionDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : new Date())),
+  reference: z.string().max(100).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const updateContributionSchema = createContributionSchema.partial().omit({ memberId: true });
+
+export const contributionFilterSchema = z.object({
+  memberId: z.string().cuid().optional(),
+  type: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type CreateContributionInput = z.infer<typeof createContributionSchema>;
+export type UpdateContributionInput = z.infer<typeof updateContributionSchema>;
+export type ContributionFilterInput = z.infer<typeof contributionFilterSchema>;
+            ]]>
+        </file>
+        <file path="src/lib/validations/offering.ts">
+            <![CDATA[
+import { z } from 'zod';
+
+export const createOfferingSchema = z.object({
+  associationId: z.string().cuid('ID association invalide'),
+  amount: z.coerce.number().positive('Le montant doit être supérieur à 0'),
+  offeringDate: z.string().transform((val) => new Date(val)),
+  notes: z.string().max(1000).optional(),
+});
+
+export const updateOfferingSchema = createOfferingSchema.partial().omit({ associationId: true });
+
+export const offeringFilterSchema = z.object({
+  associationId: z.string().cuid().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type CreateOfferingInput = z.infer<typeof createOfferingSchema>;
+export type UpdateOfferingInput = z.infer<typeof updateOfferingSchema>;
+export type OfferingFilterInput = z.infer<typeof offeringFilterSchema>;
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.6" name="VALIDATIONS_INDEX">
+        <file path="src/lib/validations/index.ts">
+            <![CDATA[
+export * from './auth';
+export * from './member';
+export * from './association';
+export * from './commitment';
+export * from './payment';
+export * from './contribution';
+export * from './offering';
+            ]]>
+        </file>
+    </step>
+    
+    <step id="3.7" name="COMMIT_PHASE_3">
+        <commands>
+            <![CDATA[
+cd D:\EPC
+npm run build
+git add .
+git commit -m "feat(validation): add Zod schemas for all entities
+
+- Member schema with create/update/filter variants
+- Association schema
+- Commitment schema with annual migration support
+- Payment schema with type enum
+- Contribution schema
+- Offering schema
+- All schemas export types for TypeScript"
+git push origin main
+            ]]>
+        </commands>
+    </step>
+</phase>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASE 4: API ROUTES                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="4" name="API_ROUTES">
+    <objective>Créer les routes API RESTful pour toutes les entités</objective>
+    <estimated_time>60-90 minutes</estimated_time>
+    
+    <step id="4.1" name="API_HELPERS">
+        <file path="src/lib/api/response.ts">
+            <![CDATA[
+import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
+
+export type ApiResponse<T = unknown> = {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: Record<string, string[]>;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export function successResponse<T>(data: T, status = 200): NextResponse<ApiResponse<T>> {
+  return NextResponse.json({ success: true, data }, { status });
+}
+
+export function paginatedResponse<T>(
+  data: T[],
+  page: number,
+  limit: number,
+  total: number
+): NextResponse<ApiResponse<T[]>> {
+  return NextResponse.json({
+    success: true,
+    data,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  });
+}
+
+export function errorResponse(
+  message: string,
+  status = 400
+): NextResponse<ApiResponse> {
+  return NextResponse.json({ success: false, error: message }, { status });
+}
+
+export function validationErrorResponse(
+  error: ZodError
+): NextResponse<ApiResponse> {
+  const errors: Record<string, string[]> = {};
+  
+  error.errors.forEach((err) => {
+    const path = err.path.join('.');
+    if (!errors[path]) {
+      errors[path] = [];
+    }
+    errors[path].push(err.message);
+  });
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Erreur de validation',
+      errors,
+    },
+    { status: 400 }
+  );
+}
+
+export function unauthorizedResponse(): NextResponse<ApiResponse> {
+  return NextResponse.json(
+    { success: false, error: 'Non autorisé' },
+    { status: 401 }
+  );
+}
+
+export function forbiddenResponse(): NextResponse<ApiResponse> {
+  return NextResponse.json(
+    { success: false, error: 'Accès refusé' },
+    { status: 403 }
+  );
+}
+
+export function notFoundResponse(resource = 'Ressource'): NextResponse<ApiResponse> {
+  return NextResponse.json(
+    { success: false, error: `${resource} non trouvé(e)` },
+    { status: 404 }
+  );
+}
+
+export function serverErrorResponse(error?: unknown): NextResponse<ApiResponse> {
+  console.error('Server Error:', error);
+  return NextResponse.json(
+    { success: false, error: 'Erreur serveur interne' },
+    { status: 500 }
+  );
+}
+            ]]>
+        </file>
+        <file path="src/lib/api/auth-check.ts">
+            <![CDATA[
+import { auth } from '@/lib/auth';
+import { unauthorizedResponse, forbiddenResponse } from './response';
+import { NextResponse } from 'next/server';
+
+export async function checkAuth() {
+  const session = await auth();
+  
+  if (!session?.user) {
+    return { authorized: false, response: unauthorizedResponse() };
+  }
+
+  return { authorized: true, user: session.user };
+}
+
+export async function checkPermission(permission: string) {
+  const authResult = await checkAuth();
+  
+  if (!authResult.authorized) {
+    return authResult;
+  }
+
+  if (!authResult.user.permissions.includes(permission)) {
+    return { authorized: false, response: forbiddenResponse() };
+  }
+
+  return authResult;
+}
+
+export async function checkAnyPermission(permissions: string[]) {
+  const authResult = await checkAuth();
+  
+  if (!authResult.authorized) {
+    return authResult;
+  }
+
+  const hasAny = permissions.some((p) => authResult.user.permissions.includes(p));
+  
+  if (!hasAny) {
+    return { authorized: false, response: forbiddenResponse() };
+  }
+
+  return authResult;
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.2" name="MEMBERS_API">
+        <file path="src/app/api/members/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import {
+  successResponse,
+  paginatedResponse,
+  validationErrorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { createMemberSchema, memberFilterSchema } from '@/lib/validations/member';
+import { generateMatricule } from '@/lib/utils/matricule';
+
+// GET /api/members - Liste des membres avec pagination et filtres
+export async function GET(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('members.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const filterResult = memberFilterSchema.safeParse(searchParams);
+
+    if (!filterResult.success) {
+      return validationErrorResponse(filterResult.error);
+    }
+
+    const { search, associationId, category, situation, gender, page, limit, sortBy, sortOrder } =
+      filterResult.data;
+
+    const where = {
+      ...(search && {
+        OR: [
+          { firstName: { contains: search } },
+          { lastName: { contains: search } },
+          { newMatricule: { contains: search } },
+          { oldMatricule: { contains: search } },
+          { phone: { contains: search } },
+        ],
+      }),
+      ...(associationId && { primaryAssociationId: associationId }),
+      ...(category && { category }),
+      ...(situation && { situation }),
+      ...(gender && { gender }),
+    };
+
+    const [members, total] = await Promise.all([
+      prisma.member.findMany({
+        where,
+        include: {
+          primaryAssociation: true,
+          associations: {
+            include: {
+              association: true,
+            },
+          },
+        },
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.member.count({ where }),
+    ]);
+
+    return paginatedResponse(members, page, limit, total);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// POST /api/members - Créer un membre
+export async function POST(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('members.create');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const body = await request.json();
+    const validationResult = createMemberSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    const data = validationResult.data;
+    const newMatricule = await generateMatricule();
+
+    const member = await prisma.member.create({
+      data: {
+        ...data,
+        newMatricule,
+      },
+      include: {
+        primaryAssociation: true,
+      },
+    });
+
+    return successResponse(member, 201);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+        <file path="src/app/api/members/[id]/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import {
+  successResponse,
+  notFoundResponse,
+  validationErrorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { updateMemberSchema } from '@/lib/validations/member';
+
+type Params = { params: Promise<{ id: string }> };
+
+// GET /api/members/[id] - Détails d'un membre
+export async function GET(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('members.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+
+    const member = await prisma.member.findUnique({
+      where: { id },
+      include: {
+        primaryAssociation: true,
+        associations: {
+          include: {
+            association: true,
+          },
+        },
+        commitments: {
+          include: {
+            payments: true,
+          },
+          orderBy: { year: 'desc' },
+        },
+        contributions: {
+          orderBy: { contributionDate: 'desc' },
+          take: 10,
+        },
+      },
+    });
+
+    if (!member) {
+      return notFoundResponse('Membre');
+    }
+
+    return successResponse(member);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// PATCH /api/members/[id] - Modifier un membre
+export async function PATCH(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('members.edit');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+    const body = await request.json();
+    const validationResult = updateMemberSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    const existing = await prisma.member.findUnique({ where: { id } });
+    if (!existing) {
+      return notFoundResponse('Membre');
+    }
+
+    const member = await prisma.member.update({
+      where: { id },
+      data: validationResult.data,
+      include: {
+        primaryAssociation: true,
+      },
+    });
+
+    return successResponse(member);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// DELETE /api/members/[id] - Supprimer un membre
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('members.delete');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+
+    const existing = await prisma.member.findUnique({ where: { id } });
+    if (!existing) {
+      return notFoundResponse('Membre');
+    }
+
+    await prisma.member.delete({ where: { id } });
+
+    return successResponse({ message: 'Membre supprimé avec succès' });
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.3" name="MATRICULE_GENERATOR">
+        <file path="src/lib/utils/matricule.ts">
+            <![CDATA[
+import { prisma } from '@/lib/db';
+
+/**
+ * Génère un nouveau matricule unique au format XXX-YY
+ * XXX: nombre de 000 à 999
+ * YY: lettres de aa à zz
+ */
+export async function generateMatricule(): Promise<string> {
+  // Récupérer le dernier matricule
+  const lastMember = await prisma.member.findFirst({
+    orderBy: { createdAt: 'desc' },
+    select: { newMatricule: true },
+  });
+
+  if (!lastMember?.newMatricule) {
+    return '000-aa';
+  }
+
+  const [numStr, letters] = lastMember.newMatricule.toLowerCase().split('-');
+  let num = parseInt(numStr ?? '0', 10);
+  let letter1 = letters?.charCodeAt(0) ?? 97; // 'a' = 97
+  let letter2 = letters?.charCodeAt(1) ?? 97;
+
+  // Incrémenter
+  num++;
+
+  if (num > 999) {
+    num = 0;
+    letter2++;
+
+    if (letter2 > 122) {
+      // > 'z'
+      letter2 = 97; // 'a'
+      letter1++;
+
+      if (letter1 > 122) {
+        throw new Error('Capacité maximale de matricules atteinte');
+      }
+    }
+  }
+
+  const newNum = num.toString().padStart(3, '0');
+  const newLetters = String.fromCharCode(letter1) + String.fromCharCode(letter2);
+
+  return `${newNum}-${newLetters}`;
+}
+
+/**
+ * Vérifie si un matricule existe déjà
+ */
+export async function matriculeExists(matricule: string): Promise<boolean> {
+  const member = await prisma.member.findUnique({
+    where: { newMatricule: matricule.toLowerCase() },
+  });
+  return !!member;
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.4" name="ASSOCIATIONS_API">
+        <file path="src/app/api/associations/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import {
+  successResponse,
+  paginatedResponse,
+  validationErrorResponse,
+  errorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { createAssociationSchema, associationFilterSchema } from '@/lib/validations/association';
+
+// GET /api/associations
+export async function GET(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('associations.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const filterResult = associationFilterSchema.safeParse(searchParams);
+
+    if (!filterResult.success) {
+      return validationErrorResponse(filterResult.error);
+    }
+
+    const { search, page, limit } = filterResult.data;
+
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search } },
+            { sigle: { contains: search } },
+          ],
+        }
+      : {};
+
+    const [associations, total] = await Promise.all([
+      prisma.association.findMany({
+        where,
+        include: {
+          _count: {
+            select: { members: true },
+          },
+        },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.association.count({ where }),
+    ]);
+
+    return paginatedResponse(associations, page, limit, total);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// POST /api/associations
+export async function POST(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('associations.create');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const body = await request.json();
+    const validationResult = createAssociationSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    // Vérifier l'unicité du sigle
+    const existing = await prisma.association.findUnique({
+      where: { sigle: validationResult.data.sigle },
+    });
+
+    if (existing) {
+      return errorResponse('Une association avec ce sigle existe déjà');
+    }
+
+    const association = await prisma.association.create({
+      data: validationResult.data,
+    });
+
+    return successResponse(association, 201);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+        <file path="src/app/api/associations/[id]/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import {
+  successResponse,
+  notFoundResponse,
+  validationErrorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { updateAssociationSchema } from '@/lib/validations/association';
+
+type Params = { params: Promise<{ id: string }> };
+
+// GET /api/associations/[id]
+export async function GET(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('associations.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+
+    const association = await prisma.association.findUnique({
+      where: { id },
+      include: {
+        members: {
+          include: {
+            member: true,
+          },
+        },
+        offerings: {
+          orderBy: { offeringDate: 'desc' },
+          take: 10,
+        },
+        _count: {
+          select: { members: true, commitments: true, offerings: true },
+        },
+      },
+    });
+
+    if (!association) {
+      return notFoundResponse('Association');
+    }
+
+    return successResponse(association);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// PATCH /api/associations/[id]
+export async function PATCH(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('associations.edit');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+    const body = await request.json();
+    const validationResult = updateAssociationSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    const existing = await prisma.association.findUnique({ where: { id } });
+    if (!existing) {
+      return notFoundResponse('Association');
+    }
+
+    const association = await prisma.association.update({
+      where: { id },
+      data: validationResult.data,
+    });
+
+    return successResponse(association);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// DELETE /api/associations/[id]
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    const authCheck = await checkPermission('associations.delete');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const { id } = await params;
+
+    const existing = await prisma.association.findUnique({ where: { id } });
+    if (!existing) {
+      return notFoundResponse('Association');
+    }
+
+    await prisma.association.delete({ where: { id } });
+
+    return successResponse({ message: 'Association supprimée avec succès' });
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.5" name="COMMITMENTS_API">
+        <description>Routes API pour les engagements</description>
+        <file path="src/app/api/commitments/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import {
+  successResponse,
+  paginatedResponse,
+  validationErrorResponse,
+  errorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { createCommitmentSchema, commitmentFilterSchema } from '@/lib/validations/commitment';
+
+// GET /api/commitments
+export async function GET(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('commitments.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const filterResult = commitmentFilterSchema.safeParse(searchParams);
+
+    if (!filterResult.success) {
+      return validationErrorResponse(filterResult.error);
+    }
+
+    const { memberId, associationId, year, page, limit } = filterResult.data;
+
+    const where = {
+      ...(memberId && { memberId }),
+      ...(associationId && { associationId }),
+      ...(year && { year }),
+    };
+
+    const [commitments, total] = await Promise.all([
+      prisma.commitment.findMany({
+        where,
+        include: {
+          member: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              newMatricule: true,
+            },
+          },
+          association: {
+            select: {
+              id: true,
+              name: true,
+              sigle: true,
+            },
+          },
+          _count: {
+            select: { payments: true },
+          },
+        },
+        orderBy: [{ year: 'desc' }, { member: { lastName: 'asc' } }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.commitment.count({ where }),
+    ]);
+
+    return paginatedResponse(commitments, page, limit, total);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// POST /api/commitments
+export async function POST(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('commitments.create');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const body = await request.json();
+    const validationResult = createCommitmentSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    const data = validationResult.data;
+
+    // Vérifier qu'il n'existe pas déjà un engagement pour ce membre cette année
+    const existing = await prisma.commitment.findUnique({
+      where: {
+        memberId_year: {
+          memberId: data.memberId,
+          year: data.year,
+        },
+      },
+    });
+
+    if (existing) {
+      return errorResponse('Un engagement existe déjà pour ce membre cette année');
+    }
+
+    const commitment = await prisma.commitment.create({
+      data,
+      include: {
+        member: true,
+        association: true,
+      },
+    });
+
+    return successResponse(commitment, 201);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.6" name="PAYMENTS_API">
+        <file path="src/app/api/payments/route.ts">
+            <![CDATA[
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import { Prisma } from '@prisma/client';
+import {
+  successResponse,
+  paginatedResponse,
+  validationErrorResponse,
+  errorResponse,
+  serverErrorResponse,
+} from '@/lib/api/response';
+import { checkPermission } from '@/lib/api/auth-check';
+import { createPaymentSchema, paymentFilterSchema } from '@/lib/validations/payment';
+
+// GET /api/payments
+export async function GET(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('payments.view');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const filterResult = paymentFilterSchema.safeParse(searchParams);
+
+    if (!filterResult.success) {
+      return validationErrorResponse(filterResult.error);
+    }
+
+    const { memberId, commitmentId, type, startDate, endDate, page, limit } = filterResult.data;
+
+    const where = {
+      ...(memberId && { memberId }),
+      ...(commitmentId && { commitmentId }),
+      ...(type && { type }),
+      ...(startDate || endDate
+        ? {
+            paymentDate: {
+              ...(startDate && { gte: new Date(startDate) }),
+              ...(endDate && { lte: new Date(endDate) }),
+            },
+          }
+        : {}),
+    };
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        include: {
+          member: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              newMatricule: true,
+            },
+          },
+          commitment: {
+            select: {
+              id: true,
+              year: true,
+            },
+          },
+        },
+        orderBy: { paymentDate: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.payment.count({ where }),
+    ]);
+
+    return paginatedResponse(payments, page, limit, total);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+
+// POST /api/payments
+export async function POST(request: NextRequest) {
+  try {
+    const authCheck = await checkPermission('payments.create');
+    if (!authCheck.authorized) return authCheck.response;
+
+    const body = await request.json();
+    const validationResult = createPaymentSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return validationErrorResponse(validationResult.error);
+    }
+
+    const data = validationResult.data;
+
+    // Vérifier que l'engagement existe
+    const commitment = await prisma.commitment.findUnique({
+      where: { id: data.commitmentId },
+    });
+
+    if (!commitment) {
+      return errorResponse('Engagement non trouvé');
+    }
+
+    // Créer le paiement et mettre à jour l'engagement dans une transaction
+    const payment = await prisma.$transaction(async (tx) => {
+      // Créer le paiement
+      const newPayment = await tx.payment.create({
+        data: {
+          memberId: data.memberId,
+          commitmentId: data.commitmentId,
+          type: data.type,
+          amount: new Prisma.Decimal(data.amount),
+          paymentDate: data.paymentDate,
+          reference: data.reference,
+          notes: data.notes,
+        },
+        include: {
+          member: true,
+          commitment: true,
+        },
+      });
+
+      // Mettre à jour le montant payé dans l'engagement
+      const updateField = {
+        TITHE: 'paidTithe',
+        CONSTRUCTION: 'paidConstruction',
+        TITHE_DEBT: 'paidTitheDebt',
+        CONSTRUCTION_DEBT: 'paidConstructionDebt',
+      }[data.type] as 'paidTithe' | 'paidConstruction' | 'paidTitheDebt' | 'paidConstructionDebt';
+
+      await tx.commitment.update({
+        where: { id: data.commitmentId },
+        data: {
+          [updateField]: {
+            increment: data.amount,
+          },
+        },
+      });
+
+      return newPayment;
+    });
+
+    return successResponse(payment, 201);
+  } catch (error) {
+    return serverErrorResponse(error);
+  }
+}
+            ]]>
+        </file>
+    </step>
+    
+    <step id="4.7" name="COMMIT_PHASE_4">
+        <commands>
+            <![CDATA[
+cd D:\EPC
+npm run build
+git add .
+git commit -m "feat(api): implement RESTful API routes
+
+- Added API response helpers (success, error, pagination)
+- Added auth check middleware for API routes
+- Implemented Members API (CRUD + filters)
+- Implemented Associations API (CRUD + stats)
+- Implemented Commitments API (CRUD + annual logic)
+- Implemented Payments API with transaction support
+- Added matricule generator utility
+
+All routes include:
+- Permission-based access control
+- Zod validation
+- Pagination support
+- Error handling"
+git push origin main
+            ]]>
+        </commands>
+    </step>
+</phase>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!--                        PHASES 5-10 (Résumé)                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<phase id="5" name="SERVICES_LAYER">
+    <objective>Créer la couche services pour la logique métier complexe</objective>
+    <services>
+        <service name="MemberService">Gestion des membres, matricules, multi-associations</service>
+        <service name="CommitmentService">Migration annuelle, calcul des dettes</service>
+        <service name="PaymentService">Enregistrement avec mise à jour des soldes</service>
+        <service name="ReportService">Génération des rapports et statistiques</service>
+    </services>
+</phase>
+
+<phase id="6" name="FRONTEND_SETUP">
+    <objective>Configurer shadcn/ui et les composants de base</objective>
+    <commands>
+        <![CDATA[
+npx shadcn@latest init
+npx shadcn@latest add button card input label form table dialog sheet toast
+        ]]>
+    </commands>
+    <components>
+        <component>Layout (Sidebar, Header, Footer)</component>
+        <component>DataTable générique avec TanStack Table</component>
+        <component>FormField wrapper pour React Hook Form</component>
+    </components>
+</phase>
+
+<phase id="7" name="PAGES">
+    <objective>Créer les pages du dashboard</objective>
+    <pages>
+        <page>/login - Page de connexion</page>
+        <page>/dashboard - Tableau de bord avec statistiques</page>
+        <page>/dashboard/members - Liste et gestion des membres</page>
+        <page>/dashboard/associations - Gestion des associations</page>
+        <page>/dashboard/commitments - Engagements annuels</page>
+        <page>/dashboard/payments - Versements</page>
+        <page>/dashboard/reports - Rapports et exports</page>
+    </pages>
+</phase>
+
+<phase id="8" name="FORMS">
+    <objective>Implémenter les formulaires avec React Hook Form + Zod</objective>
+    <forms>
+        <form>MemberForm - Création/édition de membre</form>
+        <form>CommitmentForm - Création d'engagement</form>
+        <form>PaymentForm - Enregistrement de versement</form>
+    </forms>
+</phase>
+
+<phase id="9" name="TABLES">
+    <objective>Implémenter les tables avec TanStack Table</objective>
+    <features>
+        <feature>Tri côté client et serveur</feature>
+        <feature>Filtres multiples</feature>
+        <feature>Pagination</feature>
+        <feature>Actions en masse</feature>
+        <feature>Export CSV/PDF</feature>
+    </features>
+</phase>
+
+<phase id="10" name="TESTING_AND_DEPLOYMENT">
+    <objective>Tests et préparation au déploiement</objective>
+    <tasks>
+        <task>Tests unitaires avec Vitest</task>
+        <task>Tests d'intégration API</task>
+        <task>Tests E2E avec Playwright (optionnel)</task>
+        <task>Configuration Docker</task>
+        <task>CI/CD avec GitHub Actions</task>
+    </tasks>
+</phase>
+
+</metaprompt>
