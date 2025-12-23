@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { MembersTable } from "@/components/tables/members-table";
 
 export default async function MembersPage() {
   const user = await getCurrentUser();
@@ -13,6 +14,29 @@ export default async function MembersPage() {
   if (!user) {
     redirect("/login");
   }
+
+  // Mock data for demonstration
+  const mockMembers = [
+    {
+      id: '1',
+      matricule: '001-aa',
+      firstName: 'Jean',
+      lastName: 'Dupont',
+      gender: 'MALE' as const,
+      phone: '+237612345678',
+      email: 'jean.dupont@example.com',
+      situation: 'ACTIVE',
+    },
+    {
+      id: '2',
+      matricule: '002-ab',
+      firstName: 'Marie',
+      lastName: 'Martin',
+      gender: 'FEMALE' as const,
+      phone: '+237623456789',
+      situation: 'ACTIVE',
+    },
+  ];
 
   return (
     <div>
@@ -30,7 +54,7 @@ export default async function MembersPage() {
       />
 
       <div className="mt-6">
-        <p className="text-muted-foreground">Table coming in Phase 9...</p>
+        <MembersTable members={mockMembers} />
       </div>
     </div>
   );
