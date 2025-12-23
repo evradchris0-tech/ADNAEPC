@@ -1,58 +1,77 @@
-import { auth } from "@/lib/auth";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatsCard } from "@/components/ui/stats-card";
+import { Users, HandCoins, Wallet, TrendingUp } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth/helpers";
 import { redirect } from "next/navigation";
-import { logoutAction } from "@/lib/auth/actions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const user = await getCurrentUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <h1 className="text-xl font-bold text-gray-900">ADNAEPC Dashboard</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">{session.user.name}</span>
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-                >
-                  Déconnexion
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div>
+      <PageHeader
+        title="Tableau de bord"
+        description={`Bienvenue, ${user.name}!`}
+      />
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Bienvenue, {session.user.name}!
-            </h2>
-            <div className="space-y-2">
-              <p className="text-gray-600">
-                <span className="font-semibold">Email:</span> {session.user.email}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-semibold">Rôle:</span> {session.user.role}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-semibold">Permissions:</span>{" "}
-                {session.user.permissions.length > 0
-                  ? session.user.permissions.join(", ")
-                  : "Aucune"}
-              </p>
-            </div>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatsCard
+          title="Total Paroissiens"
+          value="0"
+          icon={Users}
+          description="Membres actifs"
+          variant="default"
+        />
+        <StatsCard
+          title="Engagements 2025"
+          value="0 FCFA"
+          icon={HandCoins}
+          description="Année en cours"
+          variant="success"
+        />
+        <StatsCard
+          title="Versements du mois"
+          value="0 FCFA"
+          icon={Wallet}
+          description="Ce mois-ci"
+          variant="default"
+        />
+        <StatsCard
+          title="Taux de réalisation"
+          value="0%"
+          icon={TrendingUp}
+          description="Global"
+          variant="success"
+        />
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Activité récente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Aucune activité récente pour le moment.
+          </p>
+          <div className="mt-4 text-xs text-muted-foreground space-y-1">
+            <p>Email: {user.email}</p>
+            <p>Rôle: {user.role}</p>
+            <p>
+              Permissions:{" "}
+              {user.permissions.length > 0
+                ? user.permissions.join(", ")
+                : "Aucune"}
+            </p>
           </div>
-        </div>
-      </main>
+        </CardContent>
+      </Card>
     </div>
   );
 }
