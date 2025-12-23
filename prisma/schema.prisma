@@ -1,0 +1,303 @@
+// ADNAEPC Church Management System - Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum MemberCategory {
+  ADULT
+  YOUTH
+  CHILD
+}
+
+enum MemberSituation {
+  ACTIVE
+  INACTIVE
+  DECEASED
+  TRANSFERRED
+}
+
+enum MembershipStatus {
+  MEMBER
+  FRIEND
+  VISITOR
+}
+
+enum PaymentType {
+  CASH
+  MOBILE_MONEY
+  BANK_TRANSFER
+  CHECK
+}
+
+// ========================================
+// AUTH.JS MODELS
+// ========================================
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          String          @default("USER")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  roleRelations UserRole[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ========================================
+// RBAC (Role-Based Access Control)
+// ========================================
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  module      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ========================================
+// CHURCH MANAGEMENT MODELS
+// ========================================
+
+model Association {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members MemberAssociation[]
+
+  @@map("associations")
+}
+
+model Member {
+  id               String           @id @default(cuid())
+  matricule        String           @unique
+  firstName        String
+  lastName         String
+  gender           Gender
+  dateOfBirth      DateTime?
+  placeOfBirth     String?
+  maritalStatus    MaritalStatus
+  category         MemberCategory
+  situation        MemberSituation  @default(ACTIVE)
+  membershipStatus MembershipStatus @default(VISITOR)
+  phone            String?
+  email            String?
+  address          String?          @db.Text
+  neighborhood     String?
+  profession       String?
+  baptismDate      DateTime?
+  baptismPlace     String?
+  joinDate         DateTime         @default(now())
+  photo            String?
+  notes            String?          @db.Text
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  associations MemberAssociation[]
+  commitments  Commitment[]
+  payments     Payment[]
+
+  @@index([matricule])
+  @@index([lastName, firstName])
+  @@map("members")
+}
+
+model MemberAssociation {
+  id            String   @id @default(cuid())
+  memberId      String
+  associationId String
+  joinDate      DateTime @default(now())
+  role          String?
+  createdAt     DateTime @default(now())
+
+  member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  association Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, associationId])
+  @@map("member_associations")
+}
+
+model Commitment {
+  id               String   @id @default(cuid())
+  memberId         String
+  year             Int
+  titheAmount      Decimal  @default(0) @db.Decimal(10, 2)
+  constructionAmount Decimal @default(0) @db.Decimal(10, 2)
+  debtAmount       Decimal  @default(0) @db.Decimal(10, 2)
+  totalCommitment  Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  member   Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@unique([memberId, year])
+  @@index([year])
+  @@map("commitments")
+}
+
+model Payment {
+  id           String      @id @default(cuid())
+  memberId     String
+  commitmentId String?
+  amount       Decimal     @db.Decimal(10, 2)
+  paymentType  PaymentType @default(CASH)
+  paymentDate  DateTime    @default(now())
+  reference    String?
+  notes        String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  member     Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  commitment Commitment? @relation(fields: [commitmentId], references: [id], onDelete: SetNull)
+
+  @@index([paymentDate])
+  @@index([memberId])
+  @@map("payments")
+}
+
+model Contribution {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?     @db.Text
+  targetAmount    Decimal?    @db.Decimal(10, 2)
+  collectedAmount Decimal     @default(0) @db.Decimal(10, 2)
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([isActive])
+  @@map("contributions")
+}
+
+model Offering {
+  id          String      @id @default(cuid())
+  date        DateTime
+  serviceType String
+  amount      Decimal     @db.Decimal(10, 2)
+  notes       String?     @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([date])
+  @@map("offerings")
+}
