@@ -4,9 +4,11 @@ import { Users, HandCoins, Wallet, TrendingUp } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getTranslations } from 'next-intl/server';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
+  const t = await getTranslations('dashboard');
 
   if (!user) {
     redirect("/login");
@@ -15,35 +17,35 @@ export default async function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Tableau de bord"
-        description={`Bienvenue, ${user.name}!`}
+        title={t('title')}
+        description={t('welcome', { name: user.name || 'User' })}
       />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatsCard
-          title="Total Paroissiens"
+          title={t('totalMembers')}
           value="0"
           icon={Users}
-          description="Membres actifs"
+          description={t('activeMembers')}
           variant="default"
         />
         <StatsCard
-          title="Engagements 2025"
+          title={t('activeCommitments')}
           value="0 FCFA"
           icon={HandCoins}
-          description="Année en cours"
+          description="2025"
           variant="success"
         />
         <StatsCard
-          title="Versements du mois"
+          title={t('monthlyPayments')}
           value="0 FCFA"
           icon={Wallet}
-          description="Ce mois-ci"
+          description={new Date().toLocaleDateString('fr-FR', { month: 'long' })}
           variant="default"
         />
         <StatsCard
-          title="Taux de réalisation"
+          title={t('completionRate')}
           value="0%"
           icon={TrendingUp}
           description="Global"
@@ -54,20 +56,20 @@ export default async function DashboardPage() {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Activité récente</CardTitle>
+          <CardTitle>{t('recentActivity')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Aucune activité récente pour le moment.
+            {t('noActivity')}
           </p>
           <div className="mt-4 text-xs text-muted-foreground space-y-1">
-            <p>Email: {user.email}</p>
-            <p>Rôle: {user.role}</p>
+            <p>{t('userEmail')}: {user.email}</p>
+            <p>{t('userRole')}: {user.role}</p>
             <p>
-              Permissions:{" "}
+              {t('userPermissions')}:{" "}
               {user.permissions.length > 0
                 ? user.permissions.join(", ")
-                : "Aucune"}
+                : t('dashboard.noActivity')}
             </p>
           </div>
         </CardContent>

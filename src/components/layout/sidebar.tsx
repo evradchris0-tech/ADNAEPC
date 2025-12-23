@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -15,26 +16,28 @@ import {
   Settings,
 } from "lucide-react";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Paroissiens", href: "/dashboard/members", icon: Users },
-  { name: "Associations", href: "/dashboard/associations", icon: Users2 },
-  { name: "Engagements", href: "/dashboard/commitments", icon: HandCoins },
-  { name: "Versements", href: "/dashboard/payments", icon: Wallet },
-  { name: "Cotisations", href: "/dashboard/contributions", icon: Gift },
-  { name: "Offrandes", href: "/dashboard/offerings", icon: Church },
-  { name: "Rapports", href: "/dashboard/reports", icon: FileText },
-  { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
+  const tCommon = useTranslations('common');
+
+  const navigation = [
+    { name: t('dashboard'), href: "/dashboard", icon: LayoutDashboard },
+    { name: t('members'), href: "/dashboard/members", icon: Users },
+    { name: t('associations'), href: "/dashboard/associations", icon: Users2 },
+    { name: t('commitments'), href: "/dashboard/commitments", icon: HandCoins },
+    { name: t('payments'), href: "/dashboard/payments", icon: Wallet },
+    { name: t('contributions'), href: "/dashboard/contributions", icon: Gift },
+    { name: t('offerings'), href: "/dashboard/offerings", icon: Church },
+    { name: t('reports'), href: "/dashboard/reports", icon: FileText },
+    { name: t('settings'), href: "/dashboard/settings", icon: Settings },
+  ];
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card">
       <div className="p-6">
-        <h1 className="text-2xl font-bold">ADNAEPC</h1>
-        <p className="text-sm text-muted-foreground">Church Management</p>
+        <h1 className="text-2xl font-bold">{tCommon('appName')}</h1>
+        <p className="text-sm text-muted-foreground">{tCommon('appDescription')}</p>
       </div>
 
       <nav className="flex-1 space-y-1 px-3">

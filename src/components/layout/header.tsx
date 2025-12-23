@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { Menu } from "lucide-react";
 import { logoutAction } from "@/lib/auth/actions";
 
@@ -38,6 +39,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium">{user.name}</p>
             <p className="text-xs text-muted-foreground">{user.role}</p>
