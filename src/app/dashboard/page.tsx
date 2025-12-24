@@ -69,7 +69,7 @@ export default async function DashboardPage() {
               {t('userPermissions')}:{" "}
               {user.permissions.length > 0
                 ? user.permissions.join(", ")
-                : t('dashboard.noActivity')}
+                : t('noActivity')}
             </p>
           </div>
         </CardContent>

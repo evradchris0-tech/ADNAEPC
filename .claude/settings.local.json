@@ -25,7 +25,8 @@
       "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -h localhost -u root -e \"SELECT VERSION\\(\\);\")",
       "Bash(npx prisma db seed:*)",
       "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -h 127.0.0.1 -u root -D adnaepc -e \"SHOW TABLES;\")",
-      "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\":*)"
+      "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\":*)",
+      "Bash(node -e:*)"
     ]
   }
 }

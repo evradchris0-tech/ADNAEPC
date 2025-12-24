@@ -203,6 +203,23 @@
     "selectAssociation": "Select association",
     "generate": "Generate"
   },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your preferences and account",
+    "profile": "Profile",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "security": "Security",
+    "securityDescription": "Manage your password and account security",
+    "notifications": "Notifications",
+    "notificationsDescription": "Configure your notification preferences",
+    "appearance": "Appearance",
+    "appearanceDescription": "Customize the application appearance",
+    "language": "Language",
+    "changePassword": "Change password",
+    "theme": "Theme"
+  },
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Invalid email format",

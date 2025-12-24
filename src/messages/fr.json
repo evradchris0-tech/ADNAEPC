@@ -203,6 +203,23 @@
     "selectAssociation": "Sélectionner l'association",
     "generate": "Générer"
   },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérer vos préférences et votre compte",
+    "profile": "Profil",
+    "name": "Nom",
+    "email": "Email",
+    "role": "Rôle",
+    "security": "Sécurité",
+    "securityDescription": "Gérer votre mot de passe et la sécurité de votre compte",
+    "notifications": "Notifications",
+    "notificationsDescription": "Configurer vos préférences de notifications",
+    "appearance": "Apparence",
+    "appearanceDescription": "Personnaliser l'apparence de l'application",
+    "language": "Langue",
+    "changePassword": "Changer le mot de passe",
+    "theme": "Thème"
+  },
   "validation": {
     "required": "Ce champ est requis",
     "invalidEmail": "Format d'email invalide",

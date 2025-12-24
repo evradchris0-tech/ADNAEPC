@@ -6,7 +6,130 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // 1. Create Admin User
+  // 1. Create Permissions
+  console.log('Creating permissions...');
+  const permissionsData = [
+    { name: 'members:read', description: 'View members', module: 'members' },
+    { name: 'members:write', description: 'Create/Edit members', module: 'members' },
+    { name: 'members:delete', description: 'Delete members', module: 'members' },
+    { name: 'associations:read', description: 'View associations', module: 'associations' },
+    { name: 'associations:write', description: 'Create/Edit associations', module: 'associations' },
+    { name: 'associations:delete', description: 'Delete associations', module: 'associations' },
+    { name: 'commitments:read', description: 'View commitments', module: 'commitments' },
+    { name: 'commitments:write', description: 'Create/Edit commitments', module: 'commitments' },
+    { name: 'commitments:delete', description: 'Delete commitments', module: 'commitments' },
+    { name: 'payments:read', description: 'View payments', module: 'payments' },
+    { name: 'payments:write', description: 'Create/Edit payments', module: 'payments' },
+    { name: 'payments:delete', description: 'Delete payments', module: 'payments' },
+    { name: 'contributions:read', description: 'View contributions', module: 'contributions' },
+    { name: 'contributions:write', description: 'Create/Edit contributions', module: 'contributions' },
+    { name: 'offerings:read', description: 'View offerings', module: 'offerings' },
+    { name: 'offerings:write', description: 'Create/Edit offerings', module: 'offerings' },
+    { name: 'reports:read', description: 'View reports', module: 'reports' },
+    { name: 'settings:read', description: 'View settings', module: 'settings' },
+    { name: 'settings:write', description: 'Modify settings', module: 'settings' },
+  ];
+
+  const permissions: { [key: string]: any } = {};
+  for (const permData of permissionsData) {
+    const permission = await prisma.permission.upsert({
+      where: { name: permData.name },
+      update: {},
+      create: permData,
+    });
+    permissions[permData.name] = permission;
+  }
+  console.log(`✓ Created ${Object.keys(permissions).length} permissions`);
+
+  // 2. Create Roles
+  console.log('Creating roles...');
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: 'SUPER_ADMIN' },
+    update: {},
+    create: {
+      name: 'SUPER_ADMIN',
+      description: 'Super administrator with all permissions',
+    },
+  });
+
+  const adminRole = await prisma.role.upsert({
+    where: { name: 'ADMIN' },
+    update: {},
+    create: {
+      name: 'ADMIN',
+      description: 'Administrator with most permissions',
+    },
+  });
+
+  const userRole = await prisma.role.upsert({
+    where: { name: 'USER' },
+    update: {},
+    create: {
+      name: 'USER',
+      description: 'Regular user with read-only access',
+    },
+  });
+  console.log(`✓ Created 3 roles`);
+
+  // 3. Link Permissions to Roles
+  console.log('Linking permissions to roles...');
+
+  // SUPER_ADMIN gets all permissions
+  for (const permName of Object.keys(permissions)) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: superAdminRole.id,
+          permissionId: permissions[permName].id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: superAdminRole.id,
+        permissionId: permissions[permName].id,
+      },
+    });
+  }
+
+  // ADMIN gets all permissions except settings:write
+  for (const permName of Object.keys(permissions)) {
+    if (permName !== 'settings:write') {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: adminRole.id,
+            permissionId: permissions[permName].id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: adminRole.id,
+          permissionId: permissions[permName].id,
+        },
+      });
+    }
+  }
+
+  // USER gets only read permissions
+  const readPermissions = Object.keys(permissions).filter(p => p.endsWith(':read'));
+  for (const permName of readPermissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: userRole.id,
+          permissionId: permissions[permName].id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: userRole.id,
+        permissionId: permissions[permName].id,
+      },
+    });
+  }
+  console.log(`✓ Linked permissions to roles`);
+
+  // 4. Create Admin User
   console.log('Creating admin user...');
   const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
@@ -17,12 +140,29 @@ async function main() {
       email: 'admin@adnaepc.local',
       name: 'Administrateur',
       password: hashedPassword,
-      role: 'ADMIN',
+      role: 'SUPER_ADMIN',
     },
   });
   console.log(`✓ Admin user created: ${adminUser.email}`);
 
-  // 2. Create Associations
+  // 5. Assign SUPER_ADMIN role to admin user
+  console.log('Assigning role to admin user...');
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: adminUser.id,
+        roleId: superAdminRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: adminUser.id,
+      roleId: superAdminRole.id,
+    },
+  });
+  console.log(`✓ Assigned SUPER_ADMIN role to admin user`);
+
+  // 6. Create Associations
   console.log('Creating associations...');
   const dorcas = await prisma.association.upsert({
     where: { name: 'Dorcas' },
@@ -52,7 +192,7 @@ async function main() {
   });
   console.log(`✓ Created 3 associations`);
 
-  // 3. Create Members
+  // 7. Create Members
   console.log('Creating members...');
   const member1 = await prisma.member.upsert({
     where: { matricule: '001-aa' },
@@ -154,7 +294,7 @@ async function main() {
   });
   console.log(`✓ Created 5 members`);
 
-  // 4. Link members to associations
+  // 8. Link members to associations
   console.log('Linking members to associations...');
   await prisma.memberAssociation.upsert({
     where: {
@@ -232,7 +372,7 @@ async function main() {
   });
   console.log(`✓ Linked members to associations`);
 
-  // 5. Create Commitments for current year
+  // 9. Create Commitments for current year
   const currentYear = new Date().getFullYear();
   console.log(`Creating commitments for year ${currentYear}...`);
 
@@ -293,7 +433,10 @@ async function main() {
 
   console.log('\n✅ Seed completed successfully!');
   console.log('\n📊 Summary:');
-  console.log(`   - 1 Admin user (admin@adnaepc.local / Admin@123)`);
+  console.log(`   - 19 Permissions (members, associations, commitments, payments, etc.)`);
+  console.log(`   - 3 Roles (SUPER_ADMIN, ADMIN, USER)`);
+  console.log(`   - Role-Permission links created`);
+  console.log(`   - 1 Admin user (admin@adnaepc.local / Admin@123) with SUPER_ADMIN role`);
   console.log(`   - 3 Associations (Dorcas, Hommes, Jeunes)`);
   console.log(`   - 5 Members`);
   console.log(`   - 5 Member-Association links`);
