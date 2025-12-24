@@ -15,7 +15,10 @@
       "Bash(git push:*)",
       "Bash(npx prisma init:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma validate)",
+      "Bash(wc:*)"
     ]
   }
 }

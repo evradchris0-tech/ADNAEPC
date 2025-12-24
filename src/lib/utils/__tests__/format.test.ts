@@ -9,26 +9,40 @@ import {
 
 describe('formatCurrency', () => {
   it('should format XAF currency in French', () => {
-    const result = formatCurrency(1000, 'fr-FR');
+    const result = formatCurrency(1000, 'fr');
     expect(result).toContain('1');
-    expect(result).toContain('000');
-    expect(result).toContain('XAF');
+    expect(result.replace(/\s/g, '')).toContain('000');
+    // Accept either XAF or FCFA (locale-dependent)
+    expect(result).toMatch(/XAF|FCFA/);
+  });
+
+  it('should format XAF currency in English', () => {
+    const result = formatCurrency(1000, 'en');
+    expect(result).toContain('1');
+    expect(result.replace(/\s/g, '')).toContain('000');
   });
 
   it('should format large amounts with thousand separators', () => {
-    const result = formatCurrency(1000000, 'fr-FR');
-    expect(result).toContain('1');
-    expect(result).toContain('000');
+    const result = formatCurrency(1000000, 'fr');
+    expect(result).toBeDefined();
+    expect(result.replace(/\s/g, '')).toContain('1000000');
   });
 
   it('should handle zero', () => {
-    const result = formatCurrency(0, 'fr-FR');
+    const result = formatCurrency(0, 'fr');
     expect(result).toContain('0');
   });
 
   it('should handle negative amounts', () => {
-    const result = formatCurrency(-500, 'fr-FR');
+    const result = formatCurrency(-500, 'fr');
     expect(result).toContain('500');
+  });
+
+  it('should handle decimals by rounding', () => {
+    const result = formatCurrency(1234.56, 'fr');
+    expect(result).toBeDefined();
+    // Should not contain decimals (max 0 fraction digits)
+    expect(result).not.toContain(',56');
   });
 });
 
