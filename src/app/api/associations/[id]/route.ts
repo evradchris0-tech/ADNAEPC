@@ -14,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/associations/[id]
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("associations.view");
+    const authCheck = await checkPermission("associations:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH /api/associations/[id]
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("associations.edit");
+    const authCheck = await checkPermission("associations:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -76,7 +76,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE /api/associations/[id]
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("associations.delete");
+    const authCheck = await checkPermission("associations:delete");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;

@@ -14,7 +14,7 @@ import { createPaymentSchema, paymentFilterSchema } from "@/lib/validations/paym
 // GET /api/payments
 export async function GET(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("payments.view");
+    const authCheck = await checkPermission("payments:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 // POST /api/payments
 export async function POST(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("payments.create");
+    const authCheck = await checkPermission("payments:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const body = await request.json();

@@ -15,7 +15,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/commitments/[id] - Détails d'un engagement
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('read:commitments');
+    const authCheck = await checkPermission('commitments:read');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH /api/commitments/[id] - Modifier un engagement
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('write:commitments');
+    const authCheck = await checkPermission('commitments:write');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -126,7 +126,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE /api/commitments/[id] - Supprimer un engagement
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('delete:commitments');
+    const authCheck = await checkPermission('commitments:delete');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;

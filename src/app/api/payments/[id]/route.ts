@@ -14,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/payments/[id] - Détails d'un paiement
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('read:payments');
+    const authCheck = await checkPermission('payments:read');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH /api/payments/[id] - Modifier un paiement
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('write:payments');
+    const authCheck = await checkPermission('payments:write');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -113,7 +113,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE /api/payments/[id] - Supprimer un paiement
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission('delete:payments');
+    const authCheck = await checkPermission('payments:delete');
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;

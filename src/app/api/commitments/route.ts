@@ -13,7 +13,7 @@ import { createCommitmentSchema, commitmentFilterSchema } from "@/lib/validation
 // GET /api/commitments
 export async function GET(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("commitments.view");
+    const authCheck = await checkPermission("commitments:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 // POST /api/commitments
 export async function POST(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("commitments.create");
+    const authCheck = await checkPermission("commitments:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const body = await request.json();

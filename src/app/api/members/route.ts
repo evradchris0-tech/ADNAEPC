@@ -13,7 +13,7 @@ import { generateMatricule } from "@/lib/utils/matricule";
 // GET /api/members - Liste des membres avec pagination et filtres
 export async function GET(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("members.view");
+    const authCheck = await checkPermission("members:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 // POST /api/members - Créer un membre
 export async function POST(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("members.create");
+    const authCheck = await checkPermission("members:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const body = await request.json();

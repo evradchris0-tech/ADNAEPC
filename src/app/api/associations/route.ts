@@ -13,7 +13,7 @@ import { createAssociationSchema, associationFilterSchema } from "@/lib/validati
 // GET /api/associations
 export async function GET(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("associations.view");
+    const authCheck = await checkPermission("associations:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 // POST /api/associations
 export async function POST(request: NextRequest) {
   try {
-    const authCheck = await checkPermission("associations.create");
+    const authCheck = await checkPermission("associations:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const body = await request.json();

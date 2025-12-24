@@ -14,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/members/[id] - Détails d'un membre
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("members.view");
+    const authCheck = await checkPermission("members:read");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH /api/members/[id] - Modifier un membre
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("members.edit");
+    const authCheck = await checkPermission("members:write");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE /api/members/[id] - Supprimer un membre
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const authCheck = await checkPermission("members.delete");
+    const authCheck = await checkPermission("members:delete");
     if (!authCheck.authorized) return authCheck.response;
 
     const { id } = await params;
