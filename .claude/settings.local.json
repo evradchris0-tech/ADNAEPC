@@ -18,7 +18,14 @@
       "Bash(ls:*)",
       "Bash(npx tsc:*)",
       "Bash(npx prisma validate)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(findstr:*)",
+      "Bash(mysql:*)",
+      "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -h localhost -u root -e \"SELECT VERSION\\(\\);\")",
+      "Bash(npx prisma db seed:*)",
+      "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -h 127.0.0.1 -u root -D adnaepc -e \"SHOW TABLES;\")",
+      "Bash(\"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\":*)"
     ]
   }
 }
